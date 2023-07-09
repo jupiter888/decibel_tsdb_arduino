@@ -1,0 +1,42 @@
+unsigned long currentMillis = millis();
+
+  // Read the decibel level from the sound sensor
+  int decibelLevel = analogRead(SOUND_SENSOR_PIN);
+
+  // Display the current decibel level on the LCD screen
+  lcd.setCursor(0, 1);
+  lcd.print("                "); // Clear the previous reading
+  lcd.setCursor(0, 1);
+  lcd.print(decibelLevel);
+
+  // Store the decibel level to the data logging shield every 5 minutes
+  if (currentMillis - lastLoggingTime >= LOGGING_INTERVAL) {
+    lastLoggingTime = currentMillis;
+
+    // Check if the data logging shield is close to capacity
+    if (dataFile.availableForWrite() < 50) {
+      lcd.clear();
+      lcd.print("Error: Log Full");
+      while (true) {
+        ; // Handle data logging shield becoming close to capacity
+      }
+    }
+
+    // Log the current timestamp and decibel level to the data file
+    dataFile.print(millis());
+    dataFile.print(",");
+    dataFile.println(decibelLevel);
+    dataFile.flush(); // Ensure data is written to the SD card
+
+    // Check for any error while writing to the data file
+    if (dataFile.getWriteError()) {
+      lcd.clear();
+      lcd.print("Error: Log Write");
+      while (true) {
+        ; // Handle data logging error
+      }
+    }
+  }
+}
+
+}
